@@ -170,10 +170,12 @@ public class CallbackHandler {
     private static void handleSettingChange(long chatId, int messageId, String action, AbsSender sender) {
         Optional<User> userOpt = UserRepository.findByChatId(chatId);
         if (userOpt.isEmpty()) {
-            return;
+            UserRepository.saveInitialUser(chatId);
+            userOpt = UserRepository.findByChatId(chatId);
         }
 
-        User user = userOpt.get();
+        User user = userOpt.orElseGet(() -> new User(chatId, "Toshkent shahri", "Toshkent", true, 0));
+
         if ("SETTING_TOGGLE_NOTIF".equals(action)) {
             boolean newState = !user.isNotificationsEnabled();
             user.setNotificationsEnabled(newState);
@@ -181,10 +183,23 @@ public class CallbackHandler {
         } else if ("SETTING_MINUTES_0".equals(action)) {
             user.setReminderMinutes(0);
             UserRepository.updateReminderMinutes(chatId, 0);
+        } else if ("SETTING_MINUTES_5".equals(action)) {
+            user.setReminderMinutes(5);
+            UserRepository.updateReminderMinutes(chatId, 5);
+        } else if ("SETTING_MINUTES_10".equals(action)) {
+            user.setReminderMinutes(10);
+            UserRepository.updateReminderMinutes(chatId, 10);
         } else if ("SETTING_MINUTES_15".equals(action)) {
             user.setReminderMinutes(15);
             UserRepository.updateReminderMinutes(chatId, 15);
+        } else if ("SETTING_MINUTES_30".equals(action)) {
+            user.setReminderMinutes(30);
+            UserRepository.updateReminderMinutes(chatId, 30);
         }
+
+        String reminderText = (user.getReminderMinutes() == 0)
+                ? "Azon vaqtida (0 daqiqa)"
+                : user.getReminderMinutes() + " daqiqa oldin";
 
         String text = String.format(
                 """
@@ -193,10 +208,12 @@ public class CallbackHandler {
                 📍 Tanlangan hudud: *%s, %s*
                 🔔 Signal holati: *%s*
                 ⏰ Eslatma vaqti: *%s*
+                
+                _Signal vaqtini pastdagi tugmalar orqali o'zgartirishingiz mumkin:_
                 """,
                 user.getDistrict(), user.getRegion(),
                 user.isNotificationsEnabled() ? "Yoqilgan ✅" : "O'chirilgan ❌",
-                user.getReminderMinutes() == 0 ? "Azon vaqtida (0 daqiqa)" : user.getReminderMinutes() + " daqiqa oldin"
+                reminderText
         );
 
         EditMessageText edit = new EditMessageText();

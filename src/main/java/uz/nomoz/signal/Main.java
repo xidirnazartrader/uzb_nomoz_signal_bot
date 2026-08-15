@@ -4,6 +4,9 @@ import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import uz.nomoz.signal.bot.PrayerSignalBot;
 import uz.nomoz.signal.config.BotConfig;
@@ -14,6 +17,8 @@ import uz.nomoz.signal.service.NotificationScheduler;
 
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
@@ -39,13 +44,16 @@ public class Main {
             botsApi.registerBot(bot);
             log.info("Telegram Bot muvaffaqiyatli ulandi va tinglashni boshladi.");
 
-            // 4. Namoz vaqtlari avtomatik signal (eslatma) xizmatini ishga tushirish
+            // 4. Telegram menyu buyruqlarini (Bot Commands) o'rnatish
+            registerBotCommands(bot);
+
+            // 5. Namoz vaqtlari avtomatik signal (eslatma) xizmatini ishga tushirish
             NotificationScheduler.start(bot);
 
-            // 5. Render.com Web Service Health Check serverini ishga tushirish
+            // 6. Render.com Web Service Health Check serverini ishga tushirish
             startHealthCheckServer();
 
-            // 6. JVM to'xtaganda resurslarni xavfsiz yopish (Graceful Shutdown)
+            // 7. JVM to'xtaganda resurslarni xavfsiz yopish (Graceful Shutdown)
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("Bot to'xtatilmoqda, resurslar tozalanmoqda...");
                 if (healthServer != null) {
@@ -62,6 +70,25 @@ public class Main {
         } catch (Exception e) {
             log.error("Botni ishga tushirishda jiddiy xatolik yuz berdi:", e);
             System.exit(1);
+        }
+    }
+
+    private static void registerBotCommands(PrayerSignalBot bot) {
+        try {
+            List<BotCommand> commands = new ArrayList<>();
+            commands.add(new BotCommand("/start", "Botni ishga tushirish"));
+            commands.add(new BotCommand("/times", "Namoz vaqtlari taqvimi"));
+            commands.add(new BotCommand("/mosque", "Eng yaqin masjid & Qibla"));
+            commands.add(new BotCommand("/tasbeh", "Elektron tasbeh"));
+            commands.add(new BotCommand("/settings", "Sozlamalar & Signallar"));
+            commands.add(new BotCommand("/admin", "Foydalanuvchilar statistikasi"));
+            commands.add(new BotCommand("/help", "Ma'lumot va yordam"));
+
+            SetMyCommands setMyCommands = new SetMyCommands(commands, new BotCommandScopeDefault(), null);
+            bot.execute(setMyCommands);
+            log.info("Telegram Bot komandalar menyusi muvaffaqiyatli o'rnatildi.");
+        } catch (Exception e) {
+            log.warn("Telegram komandalar menyusini o'rnatishda ogohlantirish:", e);
         }
     }
 
@@ -83,7 +110,7 @@ public class Main {
             healthServer.start();
             log.info("🌐 Health-check HTTP server ishga tushdi: port={}", port);
         } catch (Exception e) {
-            log.warn("Health-check serverini ochishda ogohlantirish (Renderda bo'lmasa ahamiyatsiz):", e);
+            log.warn("Health-check serverini ochishda ogohlantirish:", e);
         }
     }
 }

@@ -16,6 +16,7 @@ public class BotConfig {
     private final int dbPoolMaxSize;
     private final int dbPoolMinIdle;
     private final int defaultReminderMinutes;
+    private final long adminId;
 
     private BotConfig() {
         Properties props = new Properties();
@@ -36,8 +37,11 @@ public class BotConfig {
         this.dbPoolMaxSize = Integer.parseInt(getEnvOrProp("DB_POOL_MAX_SIZE", props.getProperty("db.pool.max-size", "10")));
         this.dbPoolMinIdle = Integer.parseInt(getEnvOrProp("DB_POOL_MIN_IDLE", props.getProperty("db.pool.min-idle", "2")));
         this.defaultReminderMinutes = Integer.parseInt(getEnvOrProp("NOTIFICATION_MINUTES", props.getProperty("notification.default.minutes-before", "0")));
+        
+        String adminStr = getEnvOrProp("ADMIN_ID", props.getProperty("admin.id", "0"));
+        this.adminId = parseLongSafe(adminStr);
 
-        log.info("BotConfig muvaffaqiyatli yuklandi. Bot username: @{}", botUsername);
+        log.info("BotConfig muvaffaqiyatli yuklandi. Bot: @{}, Admin ID: {}", botUsername, adminId);
     }
 
     public static synchronized BotConfig getInstance() {
@@ -55,10 +59,19 @@ public class BotConfig {
         return defaultValue;
     }
 
+    private long parseLongSafe(String str) {
+        try {
+            return Long.parseLong(str.trim());
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
     public String getBotToken() { return botToken; }
     public String getBotUsername() { return botUsername; }
     public String getDbUrl() { return dbUrl; }
     public int getDbPoolMaxSize() { return dbPoolMaxSize; }
     public int getDbPoolMinIdle() { return dbPoolMinIdle; }
     public int getDefaultReminderMinutes() { return defaultReminderMinutes; }
+    public long getAdminId() { return adminId; }
 }

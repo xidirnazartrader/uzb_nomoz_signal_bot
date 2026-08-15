@@ -29,14 +29,14 @@ public class NotificationScheduler {
     public static void start(AbsSender botSender) {
         log.info("Namoz vaqtlari avtomatik Signal (Notification) xizmati ishga tushirildi...");
 
-        // Har 45 soniyada bir marta tekshiradi
+        // Har 25 soniyada bir marta tekshiradi
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 checkAndSendSignals(botSender);
             } catch (Exception e) {
                 log.error("Signal yuborish tekshiruvida kutilmagan xatolik:", e);
             }
-        }, 10, 45, TimeUnit.SECONDS);
+        }, 5, 25, TimeUnit.SECONDS);
     }
 
     private static void checkAndSendSignals(AbsSender botSender) {
@@ -77,7 +77,7 @@ public class NotificationScheduler {
                 "Hufton", pt.getIsha()
         );
 
-        int minutesBefore = user.getReminderMinutes(); // masalan 0 (azon vaqtida) yoki 15 (15 daqiqa oldin)
+        int minutesBefore = user.getReminderMinutes(); // 0, 5, 10, 15, 30
 
         for (Map.Entry<String, String> entry : prayerMap.entrySet()) {
             String prayerName = entry.getKey();

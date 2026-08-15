@@ -13,6 +13,7 @@ import uz.nomoz.signal.service.PrayerTimeService;
 import uz.nomoz.signal.service.QiblaService;
 import uz.nomoz.signal.service.TasbehService;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,6 +62,14 @@ public class PrayerBotTest {
         userOpt = UserRepository.findByChatId(testChatId);
         assertTrue(userOpt.isPresent());
         assertFalse(userOpt.get().isNotificationsEnabled());
+
+        // Statistika testlari
+        int total = UserRepository.getTotalUsersCount();
+        assertTrue(total > 0);
+
+        Map<String, Integer> regionStats = UserRepository.getUsersByRegionStats();
+        assertNotNull(regionStats);
+        assertTrue(regionStats.containsKey("Samarqand"));
     }
 
     @Test
