@@ -31,7 +31,7 @@ public class KeyboardFactory {
 
         KeyboardRow row3 = new KeyboardRow();
         row3.add(new KeyboardButton("⚙️ Sozlamalar & Signallar"));
-        row3.add(new KeyboardButton("ℹ️ Ma'lumot"));
+        row3.add(new KeyboardButton("✍️ Adminga murojaat"));
 
         keyboard.add(row1);
         keyboard.add(row2);
@@ -227,7 +227,7 @@ public class KeyboardFactory {
         return markup;
     }
 
-    // 8. Sozlamalar menyusi (Signal vaqtini tanlash bilan)
+    // 8. Sozlamalar menyusi
     public static InlineKeyboardMarkup getSettingsKeyboard(User user) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
@@ -235,14 +235,12 @@ public class KeyboardFactory {
         boolean isEnabled = user != null && user.isNotificationsEnabled();
         int minutes = user != null ? user.getReminderMinutes() : 0;
 
-        // Signalni yoqish / o'chirish
         List<InlineKeyboardButton> row1 = new ArrayList<>();
         row1.add(InlineKeyboardButton.builder()
                 .text(isEnabled ? "🔔 Signallar: YOQILGAN ✅" : "🔕 Signallar: O'CHIRILGAN ❌")
                 .callbackData("SETTING_TOGGLE_NOTIF")
                 .build());
 
-        // Vaqt tanlovlari: 0 daqiqa (Azon vaqtida) | 5 daqiqa oldin
         List<InlineKeyboardButton> row2 = new ArrayList<>();
         row2.add(InlineKeyboardButton.builder()
                 .text(minutes == 0 ? "⏰ 0 daq (Azon payti) ✅" : "⏰ 0 daq (Azon payti)")
@@ -253,7 +251,6 @@ public class KeyboardFactory {
                 .callbackData("SETTING_MINUTES_5")
                 .build());
 
-        // Vaqt tanlovlari: 10 daqiqa | 15 daqiqa oldin
         List<InlineKeyboardButton> row3 = new ArrayList<>();
         row3.add(InlineKeyboardButton.builder()
                 .text(minutes == 10 ? "⏰ 10 daqiqa oldin ✅" : "⏰ 10 daqiqa oldin")
@@ -264,14 +261,12 @@ public class KeyboardFactory {
                 .callbackData("SETTING_MINUTES_15")
                 .build());
 
-        // Vaqt tanlovlari: 30 daqiqa oldin
         List<InlineKeyboardButton> row4 = new ArrayList<>();
         row4.add(InlineKeyboardButton.builder()
                 .text(minutes == 30 ? "⏰ 30 daqiqa oldin ✅" : "⏰ 30 daqiqa oldin")
                 .callbackData("SETTING_MINUTES_30")
                 .build());
 
-        // Hududni o'zgartirish
         List<InlineKeyboardButton> row5 = new ArrayList<>();
         row5.add(InlineKeyboardButton.builder()
                 .text("📍 Hududni (viloyat/tuman) o'zgartirish")

@@ -2,6 +2,7 @@ package uz.nomoz.signal.handler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
@@ -24,17 +25,19 @@ public class UpdateDispatcher {
 
     private static void processUpdate(Update update, AbsSender sender) {
         if (update.hasMessage()) {
-            long chatId = update.getMessage().getChatId();
+            Message message = update.getMessage();
+            long chatId = message.getChatId();
 
-            if (update.getMessage().hasLocation()) {
-                LocationHandler.handle(chatId, update.getMessage().getLocation(), sender);
-            } else if (update.getMessage().hasText()) {
-                String text = update.getMessage().getText().trim();
+            if (message.hasLocation()) {
+                LocationHandler.handle(chatId, message.getLocation(), sender);
+            } else if (message.hasText()) {
+                String text = message.getText().trim();
 
-                if (text.startsWith("/")) {
+                // Agar Reply bo'lmasa va / bilan boshlansa CommandHandler ga
+                if (text.startsWith("/") && message.getReplyToMessage() == null) {
                     CommandHandler.handle(chatId, text, sender);
                 } else {
-                    TextMessageHandler.handle(chatId, text, sender);
+                    TextMessageHandler.handle(message, sender);
                 }
             }
         } else if (update.hasCallbackQuery()) {

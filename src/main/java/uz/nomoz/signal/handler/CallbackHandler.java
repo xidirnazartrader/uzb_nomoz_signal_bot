@@ -9,6 +9,7 @@ import uz.nomoz.signal.database.UserRepository;
 import uz.nomoz.signal.keyboard.KeyboardFactory;
 import uz.nomoz.signal.model.PrayerTimes;
 import uz.nomoz.signal.model.User;
+import uz.nomoz.signal.service.FeedbackService;
 import uz.nomoz.signal.service.PrayerTimeService;
 import uz.nomoz.signal.service.TasbehService;
 
@@ -40,6 +41,9 @@ public class CallbackHandler {
             handleSettingChange(chatId, messageId, data, sender);
         } else if (data.startsWith("ADMIN_")) {
             AdminHandler.handleCallback(chatId, messageId, data, sender);
+        } else if (data.startsWith("FEEDBACK_REPLY_")) {
+            long targetUserId = Long.parseLong(data.replace("FEEDBACK_REPLY_", ""));
+            FeedbackService.setAdminReplyTarget(chatId, targetUserId, sender);
         }
     }
 

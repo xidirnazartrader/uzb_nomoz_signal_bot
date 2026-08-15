@@ -81,6 +81,7 @@ public class Main {
             commands.add(new BotCommand("/mosque", "Eng yaqin masjid & Qibla"));
             commands.add(new BotCommand("/tasbeh", "Elektron tasbeh"));
             commands.add(new BotCommand("/settings", "Sozlamalar & Signallar"));
+            commands.add(new BotCommand("/feedback", "Adminga murojaat"));
             commands.add(new BotCommand("/admin", "Foydalanuvchilar statistikasi"));
             commands.add(new BotCommand("/help", "Ma'lumot va yordam"));
 

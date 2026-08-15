@@ -8,6 +8,7 @@ import uz.nomoz.signal.database.UserRepository;
 import uz.nomoz.signal.keyboard.KeyboardFactory;
 import uz.nomoz.signal.model.PrayerTimes;
 import uz.nomoz.signal.model.User;
+import uz.nomoz.signal.service.FeedbackService;
 import uz.nomoz.signal.service.PrayerTimeService;
 import uz.nomoz.signal.service.TasbehService;
 
@@ -30,6 +31,11 @@ public class CommandHandler {
             case "/mosque", "/masjid", "/qibla" -> handleMosque(chatId, sender);
             case "/tasbeh" -> handleTasbeh(chatId, sender);
             case "/settings", "/sozlamalar" -> handleSettings(chatId, sender);
+            case "/feedback", "/murojaat", "/support" -> FeedbackService.startFeedback(chatId, sender);
+            case "/cancel", "/bekor" -> {
+                FeedbackService.cancelState(chatId);
+                sendDirectMessage(chatId, "❌ Bekor qilindi. Asosiy menyudasiz 👇", sender);
+            }
             case "/help", "/yordam" -> handleHelp(chatId, sender);
             case "/admin", "/stat", "/stats", "/dashboard" -> AdminHandler.showDashboard(chatId, sender);
             case "/broadcast", "/sendall" -> handleBroadcast(chatId, argument, sender);
@@ -50,7 +56,8 @@ public class CommandHandler {
                 🕌 O'zbekiston hududlari bo'yicha aniq namoz vaqtlarini bilishingiz;
                 🔔 Namoz vaqtlari kirganda avtomatik signal (eslatma) olishingiz;
                 📍 Eng yaqin masjidlar va Ka'ba (Qibla) yo'nalishini topishingiz;
-                📿 Elektron tasbehdan foydalanishingiz mumkin.
+                📿 Elektron tasbehdan foydalanishingiz;
+                ✍️ Adminga savol va murojaat yo'llashingiz mumkin.
                 
                 Kerakli bo'limni tanlang 👇
                 """;
@@ -147,6 +154,7 @@ public class CommandHandler {
                 📍 *Eng yaqin masjid & Qibla* - GPS orqali atrofdagi masjidlarni va Ka'ba yo'nalishini topish.
                 📿 *Tasbeh* - Har namozdan keyingi 33 talik zikrlarni sanash.
                 ⚙️ *Sozlamalar* - Hududni va eslatma vaqtlarini sozlash.
+                ✍️ *Adminga murojaat* - Savol va takliflaringizni to'g'ridan-to'g'ri adminga yuborish.
                 
                 *Mavjud buyruqlar:*
                 /start - Botni qayta ishga tushirish
@@ -154,6 +162,7 @@ public class CommandHandler {
                 /mosque - Eng yaqin masjid & Qibla
                 /tasbeh - Elektron tasbeh
                 /settings - Sozlamalar & Signallar
+                /feedback - Adminga murojaat
                 /admin - Admin boshqaruv paneli
                 /help - Yordam
                 """;
