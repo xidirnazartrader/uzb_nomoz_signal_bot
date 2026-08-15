@@ -163,6 +163,20 @@ public class UserRepository {
         return 0;
     }
 
+    public static int getTodayNewUsersCount() {
+        String sql = "SELECT COUNT(*) FROM users WHERE date(updated_at) = date('now')";
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            log.error("Bugungi yangi foydalanuvchilar sonini olishda xatolik:", e);
+        }
+        return 0;
+    }
+
     public static int getActiveNotificationsCount() {
         String sql = "SELECT COUNT(*) FROM users WHERE notifications_enabled = 1";
         try (Connection conn = DatabaseConfig.getConnection();
@@ -190,6 +204,45 @@ public class UserRepository {
             log.error("Viloyatlar statistikasi olishda xatolik:", e);
         }
         return stats;
+    }
+
+    public static Map<Integer, Integer> getReminderMinutesDistribution() {
+        Map<Integer, Integer> dist = new LinkedHashMap<>();
+        String sql = "SELECT reminder_minutes, COUNT(*) as cnt FROM users GROUP BY reminder_minutes ORDER BY reminder_minutes ASC";
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                dist.put(rs.getInt("reminder_minutes"), rs.getInt("cnt"));
+            }
+        } catch (Exception e) {
+            log.error("Eslatma daqiqalari taqsimotini olishda xatolik:", e);
+        }
+        return dist;
+    }
+
+    public static List<User> getRecentUsers(int limit) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT chat_id, region, district, notifications_enabled, reminder_minutes, updated_at FROM users ORDER BY updated_at DESC LIMIT ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, limit);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    User user = new User();
+                    user.setChatId(rs.getLong("chat_id"));
+                    user.setRegion(rs.getString("region"));
+                    user.setDistrict(rs.getString("district"));
+                    user.setNotificationsEnabled(rs.getInt("notifications_enabled") == 1);
+                    user.setReminderMinutes(rs.getInt("reminder_minutes"));
+                    user.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    list.add(user);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Oxirgi foydalanuvchilarni olishda xatolik:", e);
+        }
+        return list;
     }
 
     public static List<Long> getAllChatIds() {

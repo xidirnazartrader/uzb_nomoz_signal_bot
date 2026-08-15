@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import uz.nomoz.signal.config.BotConfig;
 import uz.nomoz.signal.database.UserRepository;
 import uz.nomoz.signal.keyboard.KeyboardFactory;
 import uz.nomoz.signal.model.PrayerTimes;
@@ -13,7 +12,6 @@ import uz.nomoz.signal.service.PrayerTimeService;
 import uz.nomoz.signal.service.TasbehService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class CommandHandler {
@@ -33,14 +31,13 @@ public class CommandHandler {
             case "/tasbeh" -> handleTasbeh(chatId, sender);
             case "/settings", "/sozlamalar" -> handleSettings(chatId, sender);
             case "/help", "/yordam" -> handleHelp(chatId, sender);
-            case "/admin", "/stat", "/stats" -> handleAdminStats(chatId, sender);
+            case "/admin", "/stat", "/stats", "/dashboard" -> AdminHandler.showDashboard(chatId, sender);
             case "/broadcast", "/sendall" -> handleBroadcast(chatId, argument, sender);
             default -> handleUnknown(chatId, sender);
         }
     }
 
     private static void handleStart(long chatId, AbsSender sender) {
-        // Foydalanuvchini bazaga ro'yxatga kiritamiz
         UserRepository.saveInitialUser(chatId);
         Optional<User> userOpt = UserRepository.findByChatId(chatId);
 
@@ -70,7 +67,6 @@ public class CommandHandler {
             log.error("/start xabarini yuborishda xatolik: chatId={}", chatId, e);
         }
 
-        // Agar foydalanuvchi viloyat tanlamagan bo'lsa
         if (userOpt.isEmpty() || userOpt.get().getRegion() == null) {
             SendMessage regionMsg = new SendMessage();
             regionMsg.setChatId(String.valueOf(chatId));
@@ -158,7 +154,7 @@ public class CommandHandler {
                 /mosque - Eng yaqin masjid & Qibla
                 /tasbeh - Elektron tasbeh
                 /settings - Sozlamalar & Signallar
-                /admin - Admin statistikasi
+                /admin - Admin boshqaruv paneli
                 /help - Yordam
                 """;
 
@@ -215,46 +211,9 @@ public class CommandHandler {
         }
     }
 
-    // ========== ADMIN STATISTIKASI VA BOSHQARUV ==========
-
-    private static void handleAdminStats(long chatId, AbsSender sender) {
-        int totalUsers = UserRepository.getTotalUsersCount();
-        int activeNotifs = UserRepository.getActiveNotificationsCount();
-        int inactiveNotifs = totalUsers - activeNotifs;
-        Map<String, Integer> regionStats = UserRepository.getUsersByRegionStats();
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("📊 *Bot Foydalanuvchilari Statistikasi:*\n\n");
-        sb.append("👥 Jami foydalanuvchilar: *").append(totalUsers).append(" ta*\n");
-        sb.append("🔔 Signallari faol: *").append(activeNotifs).append(" ta*\n");
-        sb.append("🔕 Signallari o'chiq: *").append(inactiveNotifs).append(" ta*\n\n");
-
-        sb.append("📍 *Viloyatlar kesimida:*\n");
-        if (regionStats.isEmpty()) {
-            sb.append("_Hali ma'lumotlar yo'q_\n");
-        } else {
-            for (Map.Entry<String, Integer> entry : regionStats.entrySet()) {
-                sb.append("• ").append(entry.getKey()).append(": *").append(entry.getValue()).append(" ta*\n");
-            }
-        }
-
-        sb.append("\n📢 _Barcha foydalanuvchilarga xabar yuborish uchun:_ `/sendall Xabaringiz`");
-
-        SendMessage msg = new SendMessage();
-        msg.setChatId(String.valueOf(chatId));
-        msg.setText(sb.toString());
-        msg.setParseMode("Markdown");
-
-        try {
-            sender.execute(msg);
-        } catch (Exception e) {
-            log.error("Admin statistikasini yuborishda xatolik: chatId={}", chatId, e);
-        }
-    }
-
     private static void handleBroadcast(long chatId, String messageText, AbsSender sender) {
         if (messageText == null || messageText.trim().isEmpty()) {
-            sendDirectMessage(chatId, "⚠️ Xabar matnini kiriting. Masalan:\n`/sendall Hurmatli foydalanuvchilar, bugun Juma muborak bo'lsin!`", sender);
+            sendDirectMessage(chatId, "⚠️ Xabar matnini kiriting. Masalan:\n`/sendall Hurmatli foydalanuvchilar, bugun Juma ayyomi muborak bo'lsin!`", sender);
             return;
         }
 
@@ -270,7 +229,7 @@ public class CommandHandler {
                 msg.setParseMode("Markdown");
                 sender.execute(msg);
                 sentCount++;
-                Thread.sleep(35); // Telegram rate limitini buzmaslik uchun
+                Thread.sleep(35); // Rate limiting
             } catch (Exception e) {
                 failCount++;
             }
