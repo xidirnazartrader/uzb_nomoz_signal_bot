@@ -1,0 +1,11 @@
+# Telegram Bot Configuration Template
+bot.token=YOUR_TELEGRAM_BOT_TOKEN_HERE
+bot.username=YOUR_BOT_USERNAME
+
+# Database Configuration
+db.url=jdbc:sqlite:namoz_bot.db
+db.pool.max-size=10
+db.pool.min-idle=2
+
+# Notification / Signal Configuration
+notification.default.minutes-before=0
