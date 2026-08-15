@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import uz.nomoz.signal.model.Mosque;
-import uz.nomoz.signal.model.QazaRecord;
 import uz.nomoz.signal.model.RegionData;
 import uz.nomoz.signal.model.User;
 
@@ -15,7 +14,7 @@ import java.util.List;
 
 public class KeyboardFactory {
 
-    // 1. Pastki Asosiy Klaviatura (Qulay va tushunarli tartibda)
+    // 1. Pastki Asosiy Klaviatura
     public static ReplyKeyboardMarkup getMainKeyboard() {
         ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
         markup.setResizeKeyboard(true);
@@ -29,7 +28,6 @@ public class KeyboardFactory {
 
         KeyboardRow row2 = new KeyboardRow();
         row2.add(new KeyboardButton("📍 Eng yaqin masjid & Qibla"));
-        row2.add(new KeyboardButton("📊 Qazo hisoblagich"));
 
         KeyboardRow row3 = new KeyboardRow();
         row3.add(new KeyboardButton("⚙️ Sozlamalar & Signallar"));
@@ -199,58 +197,7 @@ public class KeyboardFactory {
         return markup;
     }
 
-    // 7. Qazo namozlari boshqaruv paneli (Tushunarli va qulay)
-    public static InlineKeyboardMarkup getQazaKeyboard(QazaRecord q) {
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
-
-        // Bomdod
-        rows.add(createQazaRow("🌅 Bomdod", "fajr", q.getFajr()));
-        // Peshin
-        rows.add(createQazaRow("🏙 Peshin", "dhuhr", q.getDhuhr()));
-        // Asr
-        rows.add(createQazaRow("🌇 Asr", "asr", q.getAsr()));
-        // Shom
-        rows.add(createQazaRow("🌆 Shom", "maghrib", q.getMaghrib()));
-        // Hufton
-        rows.add(createQazaRow("🌃 Hufton", "isha", q.getIsha()));
-        // Vitr
-        rows.add(createQazaRow("✨ Vitr", "witr", q.getWitr()));
-
-        // Umumiy 1 kunlik barcha qazolarni kamaytirish tugmasi
-        List<InlineKeyboardButton> allRow = new ArrayList<>();
-        allRow.add(InlineKeyboardButton.builder()
-                .text("✅ 1 kunlik barcha qazolarni o'qidim (-1 dan)")
-                .callbackData("QAZA_DEC_ALL")
-                .build());
-        rows.add(allRow);
-
-        markup.setKeyboard(rows);
-        return markup;
-    }
-
-    private static List<InlineKeyboardButton> createQazaRow(String title, String type, int count) {
-        List<InlineKeyboardButton> row = new ArrayList<>();
-        row.add(InlineKeyboardButton.builder()
-                .text(title + ": " + count)
-                .callbackData("QAZA_INFO_" + type)
-                .build());
-        row.add(InlineKeyboardButton.builder()
-                .text("➖ 1")
-                .callbackData("QAZA_DEC_" + type)
-                .build());
-        row.add(InlineKeyboardButton.builder()
-                .text("➕ 1")
-                .callbackData("QAZA_INC_" + type)
-                .build());
-        row.add(InlineKeyboardButton.builder()
-                .text("➕ 10")
-                .callbackData("QAZA_INC10_" + type)
-                .build());
-        return row;
-    }
-
-    // 8. Masjidlar xaritasi tugmalari
+    // 7. Masjidlar xaritasi tugmalari
     public static InlineKeyboardMarkup getMosqueLinksKeyboard(List<Mosque> mosques, double userLat, double userLon) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
@@ -265,7 +212,6 @@ public class KeyboardFactory {
             rows.add(row);
         }
 
-        // Google & Yandex Maps to'liq qidiruv havolalari
         List<InlineKeyboardButton> mapRow = new ArrayList<>();
         mapRow.add(InlineKeyboardButton.builder()
                 .text("📍 Yandex Xaritada ochish")
@@ -281,7 +227,7 @@ public class KeyboardFactory {
         return markup;
     }
 
-    // 9. Sozlamalar menyusi
+    // 8. Sozlamalar menyusi
     public static InlineKeyboardMarkup getSettingsKeyboard(User user) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();

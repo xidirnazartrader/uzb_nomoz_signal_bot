@@ -23,7 +23,6 @@ public class TextMessageHandler {
             case "🕌 Namoz vaqtlari" -> handlePrayerTimesRequest(chatId, sender);
             case "📿 Tasbeh" -> handleTasbehRequest(chatId, sender);
             case "📍 Eng yaqin masjid & Qibla" -> handleLocationPrompt(chatId, sender);
-            case "📊 Qazo hisoblagich" -> QazaHandler.showQazaMenu(chatId, sender);
             case "⚙️ Sozlamalar & Signallar" -> CommandHandler.handle(chatId, "/settings", sender);
             case "ℹ️ Ma'lumot" -> CommandHandler.handle(chatId, "/help", sender);
             case "⬅️ Asosiy menyuga qaytish" -> handleBackToMain(chatId, sender);

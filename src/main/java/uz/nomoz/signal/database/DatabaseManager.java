@@ -26,24 +26,10 @@ public class DatabaseManager {
             );
             """;
 
-        String createQazaSql = """
-            CREATE TABLE IF NOT EXISTS qaza_prayers (
-                chat_id INTEGER PRIMARY KEY,
-                fajr INTEGER DEFAULT 0,
-                dhuhr INTEGER DEFAULT 0,
-                asr INTEGER DEFAULT 0,
-                maghrib INTEGER DEFAULT 0,
-                isha INTEGER DEFAULT 0,
-                witr INTEGER DEFAULT 0,
-                updated_at TEXT
-            );
-            """;
-
         try (Connection conn = DatabaseConfig.getConnection();
              Statement stmt = conn.createStatement()) {
 
             stmt.execute(createUsersSql);
-            stmt.execute(createQazaSql);
 
             // Migratsiya tekshiruvi
             DatabaseMetaData meta = conn.getMetaData();
@@ -64,7 +50,7 @@ public class DatabaseManager {
                 stmt.execute("ALTER TABLE users ADD COLUMN updated_at TEXT");
             }
 
-            log.info("SQLite jadvallari (users, qaza_prayers) muvaffaqiyatli tekshirildi va tayyorlandi.");
+            log.info("SQLite 'users' jadvali muvaffaqiyatli tekshirildi va tayyorlandi.");
 
         } catch (Exception e) {
             log.error("Ma'lumotlar bazasini initsializatsiya qilishda xatolik:", e);

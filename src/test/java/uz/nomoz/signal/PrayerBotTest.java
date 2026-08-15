@@ -4,11 +4,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import uz.nomoz.signal.config.DatabaseConfig;
 import uz.nomoz.signal.database.DatabaseManager;
-import uz.nomoz.signal.database.QazaRepository;
 import uz.nomoz.signal.database.UserRepository;
-import uz.nomoz.signal.model.Mosque;
 import uz.nomoz.signal.model.PrayerTimes;
-import uz.nomoz.signal.model.QazaRecord;
 import uz.nomoz.signal.model.RegionData;
 import uz.nomoz.signal.model.User;
 import uz.nomoz.signal.service.MosqueFinderService;
@@ -16,7 +13,6 @@ import uz.nomoz.signal.service.PrayerTimeService;
 import uz.nomoz.signal.service.QiblaService;
 import uz.nomoz.signal.service.TasbehService;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -69,7 +65,6 @@ public class PrayerBotTest {
 
     @Test
     public void testQiblaService() {
-        // Toshkent koordinatalari: 41.2995, 69.2401
         double angle = QiblaService.calculateQiblaAngle(41.2995, 69.2401);
         assertTrue(angle > 220 && angle < 260, "Toshkentdan Qibla Janubi-G'arbda (~238-245°) bo'lishi kerak");
 
@@ -82,25 +77,7 @@ public class PrayerBotTest {
     }
 
     @Test
-    public void testQazaRepository() {
-        long testChatId = 555666777L;
-        QazaRecord q = QazaRepository.getOrCreate(testChatId);
-        assertNotNull(q);
-
-        // Peshin qazosini 2 taga oshirish
-        QazaRepository.changeCount(testChatId, "dhuhr", 2);
-        q = QazaRepository.getOrCreate(testChatId);
-        assertTrue(q.getDhuhr() >= 2);
-
-        // 1 taga kamaytirish
-        QazaRepository.changeCount(testChatId, "dhuhr", -1);
-        q = QazaRepository.getOrCreate(testChatId);
-        assertTrue(q.getDhuhr() >= 1);
-    }
-
-    @Test
     public void testMosqueDistanceCalculation() {
-        // Toshkent va Samarqand orasidagi masofa (~270 km)
         double dist = MosqueFinderService.calculateDistanceMeters(41.2995, 69.2401, 39.6542, 66.9597);
         assertTrue(dist > 250000 && dist < 320000);
     }

@@ -38,8 +38,6 @@ public class CallbackHandler {
             handleTasbehReset(chatId, messageId, sender);
         } else if (data.startsWith("SETTING_")) {
             handleSettingChange(chatId, messageId, data, sender);
-        } else if (data.startsWith("QAZA_")) {
-            QazaHandler.handleCallback(chatId, messageId, data, sender);
         }
     }
 
