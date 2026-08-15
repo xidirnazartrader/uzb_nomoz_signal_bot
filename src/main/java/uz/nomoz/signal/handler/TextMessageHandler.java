@@ -22,8 +22,11 @@ public class TextMessageHandler {
         switch (text) {
             case "🕌 Namoz vaqtlari" -> handlePrayerTimesRequest(chatId, sender);
             case "📿 Tasbeh" -> handleTasbehRequest(chatId, sender);
+            case "📍 Eng yaqin masjid & Qibla" -> handleLocationPrompt(chatId, sender);
+            case "📊 Qazo hisoblagich" -> QazaHandler.showQazaMenu(chatId, sender);
             case "⚙️ Sozlamalar & Signallar" -> CommandHandler.handle(chatId, "/settings", sender);
             case "ℹ️ Ma'lumot" -> CommandHandler.handle(chatId, "/help", sender);
+            case "⬅️ Asosiy menyuga qaytish" -> handleBackToMain(chatId, sender);
             default -> handleDefaultText(chatId, text, sender);
         }
     }
@@ -76,6 +79,37 @@ public class TextMessageHandler {
             sender.execute(msg);
         } catch (Exception e) {
             log.error("Tasbeh boshlash xabarini yuborishda xatolik: chatId={}", chatId, e);
+        }
+    }
+
+    private static void handleLocationPrompt(long chatId, AbsSender sender) {
+        SendMessage msg = new SendMessage();
+        msg.setChatId(String.valueOf(chatId));
+        msg.setText("""
+                📍 *Eng yaqin masjid va Qibla yo'nalishini aniqlash:*
+                
+                Siz turgan joydagi eng yaqin masjidlarni va Ka'ba tomonga yo'nalishni (burchakni) aniqlash uchun pastdagi *«📍 Joylashuvimni yuborish (GPS)»* tugmasini bosing:
+                """);
+        msg.setParseMode("Markdown");
+        msg.setReplyMarkup(KeyboardFactory.getLocationRequestKeyboard());
+
+        try {
+            sender.execute(msg);
+        } catch (Exception e) {
+            log.error("Lokatsiya so'rovini yuborishda xatolik: chatId={}", chatId, e);
+        }
+    }
+
+    private static void handleBackToMain(long chatId, AbsSender sender) {
+        SendMessage msg = new SendMessage();
+        msg.setChatId(String.valueOf(chatId));
+        msg.setText("Asosiy menyu:");
+        msg.setReplyMarkup(KeyboardFactory.getMainKeyboard());
+
+        try {
+            sender.execute(msg);
+        } catch (Exception e) {
+            log.error("Asosiy menyuga qaytish xabarida xatolik: chatId={}", chatId, e);
         }
     }
 

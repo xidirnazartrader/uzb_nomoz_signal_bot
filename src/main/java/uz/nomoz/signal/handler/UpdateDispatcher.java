@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 
 public class UpdateDispatcher {
     private static final Logger log = LoggerFactory.getLogger(UpdateDispatcher.class);
-    // Ko'p foydalanuvchilar bilan ishlash uchun 10 ta oqimli thread pool
     private static final ExecutorService updateExecutor = Executors.newFixedThreadPool(10);
 
     public static void dispatch(Update update, AbsSender sender) {
@@ -24,14 +23,19 @@ public class UpdateDispatcher {
     }
 
     private static void processUpdate(Update update, AbsSender sender) {
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            String text = update.getMessage().getText().trim();
+        if (update.hasMessage()) {
             long chatId = update.getMessage().getChatId();
 
-            if (text.startsWith("/")) {
-                CommandHandler.handle(chatId, text, sender);
-            } else {
-                TextMessageHandler.handle(chatId, text, sender);
+            if (update.getMessage().hasLocation()) {
+                LocationHandler.handle(chatId, update.getMessage().getLocation(), sender);
+            } else if (update.getMessage().hasText()) {
+                String text = update.getMessage().getText().trim();
+
+                if (text.startsWith("/")) {
+                    CommandHandler.handle(chatId, text, sender);
+                } else {
+                    TextMessageHandler.handle(chatId, text, sender);
+                }
             }
         } else if (update.hasCallbackQuery()) {
             CallbackHandler.handle(update.getCallbackQuery(), sender);

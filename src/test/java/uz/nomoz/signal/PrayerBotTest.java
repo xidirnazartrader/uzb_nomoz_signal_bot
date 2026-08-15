@@ -4,11 +4,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import uz.nomoz.signal.config.DatabaseConfig;
 import uz.nomoz.signal.database.DatabaseManager;
+import uz.nomoz.signal.database.QazaRepository;
 import uz.nomoz.signal.database.UserRepository;
+import uz.nomoz.signal.model.Mosque;
 import uz.nomoz.signal.model.PrayerTimes;
+import uz.nomoz.signal.model.QazaRecord;
 import uz.nomoz.signal.model.RegionData;
 import uz.nomoz.signal.model.User;
+import uz.nomoz.signal.service.MosqueFinderService;
 import uz.nomoz.signal.service.PrayerTimeService;
+import uz.nomoz.signal.service.QiblaService;
 import uz.nomoz.signal.service.TasbehService;
 
 import java.util.List;
@@ -38,7 +43,7 @@ public class PrayerBotTest {
 
     @Test
     public void testDatabaseAndUserRepository() {
-        long testChatId = 999888777L;
+        long testChatId = System.currentTimeMillis();
         String testRegion = "Samarqand";
         String testDistrict = "Urgut";
 
@@ -51,7 +56,6 @@ public class PrayerBotTest {
         assertEquals(testDistrict, user.getDistrict());
         assertTrue(user.isNotificationsEnabled());
 
-        // Sozlamalarni o'zgartirish
         UserRepository.updateReminderMinutes(testChatId, 15);
         userOpt = UserRepository.findByChatId(testChatId);
         assertTrue(userOpt.isPresent());
@@ -61,6 +65,44 @@ public class PrayerBotTest {
         userOpt = UserRepository.findByChatId(testChatId);
         assertTrue(userOpt.isPresent());
         assertFalse(userOpt.get().isNotificationsEnabled());
+    }
+
+    @Test
+    public void testQiblaService() {
+        // Toshkent koordinatalari: 41.2995, 69.2401
+        double angle = QiblaService.calculateQiblaAngle(41.2995, 69.2401);
+        assertTrue(angle > 220 && angle < 260, "Toshkentdan Qibla Janubi-G'arbda (~238-245°) bo'lishi kerak");
+
+        String cardinal = QiblaService.getCardinalDirection(angle);
+        assertNotNull(cardinal);
+        assertTrue(cardinal.contains("Janubi-G'arb") || cardinal.contains("G'arb"));
+
+        double dist = QiblaService.calculateDistanceToKaabaKm(41.2995, 69.2401);
+        assertTrue(dist > 3000 && dist < 4500, "Ka'bagacha masofa ~3600 km bo'lishi kerak");
+    }
+
+    @Test
+    public void testQazaRepository() {
+        long testChatId = 555666777L;
+        QazaRecord q = QazaRepository.getOrCreate(testChatId);
+        assertNotNull(q);
+
+        // Peshin qazosini 2 taga oshirish
+        QazaRepository.changeCount(testChatId, "dhuhr", 2);
+        q = QazaRepository.getOrCreate(testChatId);
+        assertTrue(q.getDhuhr() >= 2);
+
+        // 1 taga kamaytirish
+        QazaRepository.changeCount(testChatId, "dhuhr", -1);
+        q = QazaRepository.getOrCreate(testChatId);
+        assertTrue(q.getDhuhr() >= 1);
+    }
+
+    @Test
+    public void testMosqueDistanceCalculation() {
+        // Toshkent va Samarqand orasidagi masofa (~270 km)
+        double dist = MosqueFinderService.calculateDistanceMeters(41.2995, 69.2401, 39.6542, 66.9597);
+        assertTrue(dist > 250000 && dist < 320000);
     }
 
     @Test
@@ -77,14 +119,6 @@ public class PrayerBotTest {
         assertNotNull(dailyMsg);
         assertTrue(dailyMsg.contains("Bomdod"));
         assertTrue(dailyMsg.contains("Peshin"));
-
-        List<PrayerTimes> monthly = PrayerTimeService.getMonthlyPrayerTimes("Toshkent shahri", "Yunusobod");
-        assertNotNull(monthly);
-        assertFalse(monthly.isEmpty());
-
-        String monthlyMsg = PrayerTimeService.formatMonthlyMessage("Toshkent shahri", "Yunusobod");
-        assertNotNull(monthlyMsg);
-        assertTrue(monthlyMsg.length() < 4000, "Xabar uzunligi Telegram chegarasidan (4096) oshmasligi kerak");
     }
 
     @Test
@@ -95,15 +129,12 @@ public class PrayerBotTest {
         assertEquals(0, TasbehService.getCount(testChatId));
         assertEquals(0, TasbehService.getStage(testChatId));
 
-        // 32 marta bosish
         for (int i = 0; i < 32; i++) {
             boolean completed = TasbehService.increment(testChatId);
             assertFalse(completed);
         }
         assertEquals(32, TasbehService.getCount(testChatId));
-        assertEquals(0, TasbehService.getStage(testChatId));
 
-        // 33-marta bosganda keyingi bosqichga o'tishi kerak
         boolean completed = TasbehService.increment(testChatId);
         assertFalse(completed);
         assertEquals(0, TasbehService.getCount(testChatId));

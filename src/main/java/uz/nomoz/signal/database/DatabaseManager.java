@@ -15,7 +15,7 @@ public class DatabaseManager {
     private static final Logger log = LoggerFactory.getLogger(DatabaseManager.class);
 
     public static void initDatabase() {
-        String createTableSql = """
+        String createUsersSql = """
             CREATE TABLE IF NOT EXISTS users (
                 chat_id INTEGER PRIMARY KEY,
                 region TEXT NOT NULL,
@@ -26,12 +26,26 @@ public class DatabaseManager {
             );
             """;
 
+        String createQazaSql = """
+            CREATE TABLE IF NOT EXISTS qaza_prayers (
+                chat_id INTEGER PRIMARY KEY,
+                fajr INTEGER DEFAULT 0,
+                dhuhr INTEGER DEFAULT 0,
+                asr INTEGER DEFAULT 0,
+                maghrib INTEGER DEFAULT 0,
+                isha INTEGER DEFAULT 0,
+                witr INTEGER DEFAULT 0,
+                updated_at TEXT
+            );
+            """;
+
         try (Connection conn = DatabaseConfig.getConnection();
              Statement stmt = conn.createStatement()) {
 
-            stmt.execute(createTableSql);
+            stmt.execute(createUsersSql);
+            stmt.execute(createQazaSql);
 
-            // Migratsiya: eski baza bo'lsa yangi ustunlarni tekshirish va qo'shish
+            // Migratsiya tekshiruvi
             DatabaseMetaData meta = conn.getMetaData();
             Set<String> columns = new HashSet<>();
             try (ResultSet rs = meta.getColumns(null, null, "users", null)) {
@@ -42,18 +56,15 @@ public class DatabaseManager {
 
             if (!columns.contains("notifications_enabled")) {
                 stmt.execute("ALTER TABLE users ADD COLUMN notifications_enabled INTEGER DEFAULT 1");
-                log.info("Migratsiya: 'notifications_enabled' ustuni qo'shildi.");
             }
             if (!columns.contains("reminder_minutes")) {
                 stmt.execute("ALTER TABLE users ADD COLUMN reminder_minutes INTEGER DEFAULT 0");
-                log.info("Migratsiya: 'reminder_minutes' ustuni qo'shildi.");
             }
             if (!columns.contains("updated_at")) {
                 stmt.execute("ALTER TABLE users ADD COLUMN updated_at TEXT");
-                log.info("Migratsiya: 'updated_at' ustuni qo'shildi.");
             }
 
-            log.info("SQLite 'users' jadvali muvaffaqiyatli tekshirildi va tayyorlandi.");
+            log.info("SQLite jadvallari (users, qaza_prayers) muvaffaqiyatli tekshirildi va tayyorlandi.");
 
         } catch (Exception e) {
             log.error("Ma'lumotlar bazasini initsializatsiya qilishda xatolik:", e);
